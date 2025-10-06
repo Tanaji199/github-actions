@@ -2,7 +2,7 @@ name: Hello World Workflow
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   say-hello:
