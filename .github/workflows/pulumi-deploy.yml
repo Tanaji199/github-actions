@@ -3,52 +3,56 @@ name: Pulumi AWS Infra Deploy
 on:
   push:
     branches:
-      - master
+      - master   # Triggers only on pushes to master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # 4. Install Pulumi & Login
       - name: Install Pulumi & Login
         uses: pulumi/actions@v5
         with:
           pulumi-version: 'latest'
           pulumi-access-token: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
+      # 5. Select or create Pulumi stack
       - name: Select Pulumi stack
         run: |
           if ! pulumi stack select dev; then
             pulumi stack init dev
           fi
 
+      # 6. Pulumi preview (optional but recommended)
       - name: Pulumi Preview
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.REGION }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: pulumi preview
 
+      # 7. Pulumi deploy (up)
       - name: Pulumi Up (Deploy)
         if: github.ref == 'refs/heads/master'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.REGION }}
-        run: pulumi up --yes
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.REGION }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: pulumi up --yes
