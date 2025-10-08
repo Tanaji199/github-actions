@@ -61,3 +61,42 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.REGION }}
+
+
+
+
+
+# --- Existing resources ---
+# (VPC, S3, etc.)
+# ...
+
+# --- New EC2 instance ---
+import pulumi_aws as aws
+
+sec_group = aws.ec2.SecurityGroup(
+    "automatedserver-sg",
+    description="Allow SSH inbound traffic",
+    ingress=[{
+        "protocol": "tcp",
+        "from_port": 22,
+        "to_port": 22,
+        "cidr_blocks": ["0.0.0.0/0"],
+    }],
+    egress=[{
+        "protocol": "-1",
+        "from_port": 0,
+        "to_port": 0,
+        "cidr_blocks": ["0.0.0.0/0"],
+    }]
+)
+
+server = aws.ec2.Instance(
+    "automatedserver",
+    instance_type="t2.micro",
+    ami="ami-0c02fb55956c7d316",
+    vpc_security_group_ids=[sec_group.id],
+    tags={"Name": "automatedserver"}
+)
+
+pulumi.export("automatedserver_public_ip", server.public_ip)
+pulumi.export("automatedserver_id", server.id)

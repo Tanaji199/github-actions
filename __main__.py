@@ -134,3 +134,18 @@ pulumi.export("vpc_id", vpc.id)
 pulumi.export("bastion_public_ip", bastion.public_ip)
 pulumi.export("private_instance_private_ip", private_instance.private_ip)
 pulumi.export("nat_gateway_ip", eip.public_ip)
+
+
+
+automated_server = aws.ec2.Instance("automatedserver",
+    ami=ami,
+    instance_type=instance_type,
+    subnet_id=private_subnet.id,
+    vpc_security_group_ids=[private_sg.id],
+    associate_public_ip_address=False,  # Private instance
+    key_name=key_name,
+    tags={"Name": "automatedserver"}
+)
+
+# ----- Outputs -----
+pulumi.export("automated_server_private_ip", automated_server.private_ip)
